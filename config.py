@@ -11,7 +11,7 @@ videoFPS = 30
 # Gives colouring rule for images
 # This matches a cell state value to an RGB colour
 colourRule = {
-    # Syntax is cell value: (R, G, B)
+    # Syntax is - cell value: (R, G, B)
     1: (0, 0, 0),
     0: (255, 255, 255)
 }
