@@ -1,9 +1,9 @@
 Cellular-Automata
 =================
 
-CA-style simulation code in Python
+CA-style simulation code in Python 
 
-Controls:
+<b>Controls</b>:
 
 Left-click to increment value of cell.
 
@@ -12,12 +12,12 @@ Right-click to decrement value of cell.
 Return key to play/pause.
 
 
-Visuals:
+<b>Visuals</b>:
 
 Border colour shows green when simulation in progress and red when paused.
 
 
-Planned Improvements:
+<b>Planned Improvements</b>:
 
 Better interface.
 
