@@ -209,9 +209,11 @@ class Display:
         self.squareXSize = defaultSquareXSize
         self.squareYSize = defaultSquareYSize
 
+        self.borderThickness = 2
+
         self.screenOptions = pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE
         pygame.display.set_caption("Cellular Automata")
-        self.screen = pygame.display.set_mode([nRows * self.squareYSize, nCols * self.squareXSize], self.screenOptions)
+        self.screen = pygame.display.set_mode([nRows * self.squareYSize + self.borderThickness, nCols * self.squareXSize + self.borderThickness], self.screenOptions)
         initialState = StartingState(nRows, nCols)
         self.rule = ruleSet
         self.colourRule = colourRule
@@ -232,11 +234,17 @@ class Display:
 
     # Returns a Rect which matches the given grid x, y coordinates
     def gridCoordsToDisplayRect(self, x, y):
-        left = x * self.squareXSize
-        top = y * self.squareYSize
-        width = self.squareXSize
-        height = self.squareYSize
+        left = self.gridXToDisplayX(x)
+        top = self.gridYToDisplayY(y)
+        width = self.squareXSize + 2 * self.borderThickness
+        height = self.squareYSize + 2 * self.borderThickness
         return pygame.Rect(left, top, width, height)
+
+    def gridXToDisplayX(self, x):
+        return x * self.squareXSize + self.borderThickness
+
+    def gridYToDisplayY(self, y):
+        return y * self.squareYSize + self.borderThickness
 
     def render(self):
         # Draw the coloured squares
@@ -251,20 +259,38 @@ class Display:
         # Whack in some grid lines
         black = (0, 0, 0)
 
-        x = 0
-        while x <= self.grid.nCols * self.squareXSize:
-            startCoords = (x, 0)
-            endCoords = (x, self.grid.nRows * self.squareYSize)
+        x = 1
+        while x < self.grid.nCols:
+            startCoords = (self.gridXToDisplayX(x) , self.gridYToDisplayY(0))
+            endCoords = (self.gridXToDisplayX(x), self.gridYToDisplayY(self.grid.nRows))
             pygame.draw.line(self.screen, black, startCoords, endCoords)
-            x += self.squareXSize
+            x += 1
 
-        y = 0
-        while y <= self.grid.nRows * self.squareYSize:
-            startCoords = (0, y)
-            endCoords = (self.grid.nCols * self.squareXSize, y)
+        y = 1
+        while y < self.grid.nRows:
+            startCoords = (self.gridXToDisplayX(0), self.gridYToDisplayY(y))
+            endCoords = ( self.gridXToDisplayX(self.grid.nCols), self.gridYToDisplayY(y))
             pygame.draw.line(self.screen, black, startCoords, endCoords)
-            y += self.squareYSize
+            y += 1
 
+        # Special coloured grid lines around edge to show play/ pause
+        topLeft = (0, 0)
+        topRight = (self.squareXSize * self.grid.nCols, 0)
+        bottomRight = (self.squareXSize * self.grid.nCols, self.squareYSize * self.grid.nRows)
+        bottomLeft=(0, self.squareYSize * self.grid.nRows)
+
+        if self.simulating:
+            borderColour = (0, 255, 0)
+        else:
+            borderColour = (255, 0, 0)
+
+        # Maybe should use draw.lines in future but this won't
+        # be a rate-limiting step and some issues with joins
+        # apparently
+        pygame.draw.line(self.screen, borderColour, topLeft, topRight)
+        pygame.draw.line(self.screen, borderColour, topRight, bottomRight)
+        pygame.draw.line(self.screen, borderColour, bottomRight, bottomLeft)
+        pygame.draw.line(self.screen, borderColour, bottomLeft, topLeft)
 
         pygame.display.update()
 
@@ -282,8 +308,8 @@ class Display:
                 elif event.type == pygame.VIDEORESIZE:
                     # Rescale to match new size
                     newRes = event.dict['size']
-                    self.squareXSize = newRes[0] / self.grid.nCols
-                    self.squareYSize = newRes[1] / self.grid.nRows
+                    self.squareXSize = (newRes[0] - self.borderThickness) / self.grid.nCols
+                    self.squareYSize = (newRes[1] - self.borderThickness) / self.grid.nRows
                     screen = pygame.display.set_mode(newRes, self.screenOptions)
 
                     self.render()
@@ -308,6 +334,7 @@ class Display:
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                     # If running then pause, otherwise start running
                     self.simulating = not self.simulating
+                    self.render()
 
             if self.simulating:
                 # Make sure we don't render too quickly
