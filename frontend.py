@@ -15,18 +15,17 @@ class Display:
         pygame.init()
 
         # Some defaults
-        # TODO: This should probably scale inversely with number of squares
-        defaultSquareXSize = 10
-        defaultSquareYSize = 10
-
-        self.squareXSize = defaultSquareXSize
-        self.squareYSize = defaultSquareYSize
+        defaultWindowWidth = 500
+        defaultWindowHeight = 500
 
         self.borderThickness = 2
 
+        self.squareXSize = (defaultWindowWidth - 2 * self.borderThickness) / nCols
+        self.squareYSize = (defaultWindowHeight - 2 * self.borderThickness) / nRows
+
         self.screenOptions = pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE
         pygame.display.set_caption("Cellular Automata")
-        self.screen = pygame.display.set_mode([nRows * self.squareYSize + self.borderThickness, nCols * self.squareXSize + self.borderThickness], self.screenOptions)
+        self.screen = pygame.display.set_mode([defaultWindowWidth, defaultWindowHeight], self.screenOptions)
         self.rule = ruleSet
         self.colourRule = colourRule
 
