@@ -137,29 +137,55 @@ rule=gameOfLife
 # Main part of script #####################################
 
 if __name__ == '__main__':
-    # Just for now
-    exit()
+    # Commandline decides what mode to run in
+    runPretty = True
 
-    # This class keeps track of the state of the system
-    grid=CAUtilities.Grid(numberOfRowsInGrid, numberOfColumnsInGrid, initialState, gridSquareSize)
+    for arg in sys.argv:
+        if arg == "-simple":
+            # This means that the "fancy" GUI should be avoided
+            # and just to save snapshots to file
+            runPretty = False
 
-    # Check the output folder exists
-    if(not os.path.isdir(outputFolderName)):
-        os.mkdir(outputFolderName)
+    # Are we running with pretty output?
+    if runPretty:
+        # This class handles output to the screen and
+        # running of the simulation
+        disp = CAUtilities.Display(
+            numberOfRowsInGrid,
+            numberOfColumnsInGrid,
+            gridSquareSize,
+            videoFPS,
+            colourRule,
+            rule
+        )
 
-    # How often to report on output
-    reportFrequency=10
+        disp.run()
+    else:
+        # This class keeps track of the state of the system
+        grid = CAUtilities.Grid(
+            numberOfRowsInGrid,
+            numberOfColumnsInGrid,
+            initialState,
+            gridSquareSize
+        )
 
-    # Now run through time
-    for t in range(numberOfTimeSteps + 1):
-        if t % reportFrequency == 0:
-            print("Time step "+str(t)+" of "+str(numberOfTimeSteps)+" done.")
+        # Check the output folder exists
+        if(not os.path.isdir(outputFolderName)):
+            os.mkdir(outputFolderName)
 
-        grid.saveToFile(t, outputFolderName+"/"+filePrefix, colourRule)
-        grid.applyRule(rule)
+        # How often to report on output
+        # TODO: Set this elsewhere
+        reportFrequency = 10
 
-    # Make output into a video
-    os.chdir(outputFolderName)
-    # command="ffmpeg -framerate "+str(videoFPS)+" -i "+filePrefix+"%d.bmp -crf 18 -vcodec mpeg4 -b:v 2000k -y "+filePrefix+".mp4 2> NUL"
-    command = "convert -delay 1x"+str(videoFPS)+" "+str(filePrefix)+"%d.bmp[0-"+str(numberOfTimeSteps)+"] output.gif"
-    os.system(command)
+        # Now run through time
+        for t in range(numberOfTimeSteps + 1):
+            if t % reportFrequency == 0:
+                print("Time step "+str(t) + " of " + str(numberOfTimeSteps)+" done.")
+
+            grid.saveToFile(t, outputFolderName + "/" + filePrefix, colourRule)
+            grid.applyRule(rule)
+
+        # Make output into a video
+        os.chdir(outputFolderName)
+        command = "convert -delay 1x" + str(videoFPS) + " " + str(filePrefix) + "%d.bmp[0-" + str(numberOfTimeSteps) + "] output.gif"
+        os.system(command)

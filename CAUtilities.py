@@ -10,35 +10,36 @@ import datetime
 # Gives the current number of milliseconds since epoch
 def msecsSinceEpoch():
     epoch = datetime.datetime(1970, 1, 1)
-    diff = date.datetime.now() - epoch
-    return (epoch.microseconds * 1000)
+    diff = datetime.datetime.now() - epoch
+    return (diff.microseconds * 1000)
 
 # Utility classes
 class Grid:
     # Constructor
-    def __init__(self, nRows, nCols, initialState, squareSize):
-        self.array=[[0 for x in range(nRows)] for x in range(nCols)]
-        self.brray=[[0 for x in range(nRows)] for x in range(nCols)]
-        self.useA=True
-        self.nCols=nCols
-        self.nRows=nRows
-        self.squareSize=squareSize
+    def __init__(self, nRows, nCols, initialState, squareSize, maxState):
+        self.array = [[0 for x in range(nRows)] for x in range(nCols)]
+        self.brray = [[0 for x in range(nRows)] for x in range(nCols)]
+        self.useA = True
+        self.nCols = nCols
+        self.nRows = nRows
+        self.squareSize = squareSize
+        self.maxState = maxState
 
         for key in initialState:
-            self.array[key[0]][key[1]]=initialState[key]
+            self.array[key[0]][key[1]] = initialState[key]
 
     def getNeighbourStates(self, x, y, sizeOfNeighbourHood):
-        retList=[]
-        xScan=[]
-        yScan=[]
+        retList = []
+        xScan = []
+        yScan = []
 
-        for offSet in range(sizeOfNeighbourHood+1):
-            xScan.append(x-offSet)
-            yScan.append(y-offSet)
+        for offSet in range(sizeOfNeighbourHood + 1):
+            xScan.append(x - offSet)
+            yScan.append(y - offSet)
 
-            if offSet!=0:
-                xScan.append(x+offSet)
-                yScan.append(y+offSet)
+            if offSet != 0:
+                xScan.append(x + offSet)
+                yScan.append(y + offSet)
 
         for i in xScan:
             for j in yScan:
@@ -53,22 +54,28 @@ class Grid:
 
     # TODO: Need to check array/brray weirdness here
     def getState(self, x, y):
-        if useA:
+        x = int(x)
+        y = int(y)
+        if self.useA:
             return self.array[x][y]
         else:
             return self.brray[x][y]
 
     def setState(self, x, y, value):
-        if useA:
+        x = int(x)
+        y = int(y)
+        if self.useA:
             self.array[x][y] = value
         else:
             self.brray[x][y] = value
 
-    def incrementState(x, y):
-        self.setState(x, y, self.getState(x, y) + 1)
+    def incrementState(self, x, y):
+        if self.getState(x, y) != self.maxState:
+            self.setState(x, y, self.getState(x, y) + 1)
 
-    def decrementState(x, y):
-        self.setState(x, y, self.getState(x, y) - 1)
+    def decrementState(self, x, y):
+        if self.getState(x, y) != 0:
+            self.setState(x, y, self.getState(x, y) - 1)
 
     def applyRule(self, rule):
         for i in range(self.nCols):
@@ -186,83 +193,112 @@ def bmp_write(d, byte, fileName):
     # create the outfile
     outfile = open(fileName,'wb')
     # write the header + the bytes
-    outfile.write(mn1+mn2+filesize+undef1+undef2+offset+headerlength+width+height+\
-                  colorplanes+colordepth+compression+imagesize+res_hor+res_vert+\
-                  palette+importantcolors+byte)
+    outfile.write(mn1 + mn2 + filesize + undef1 + undef2 + offset + headerlength + width + height + colorplanes + colordepth + compression + imagesize + res_hor + res_vert + palette + importantcolors + byte)
     outfile.close()
 
-# TODO: Pygame used 0, 0 at top left corner - make sure this all works with my stuff
 class Display:
     def __init__(self, nRows, nCols, cellSize, maxFPS, colourRule, ruleSet):
         # Set up pygame stuff first
         pygame.init()
         pygame.display.set_caption("Cellular Automata")
-        self.screen = pygame.display.set_mode(nRows * nCols * cellSize)
+        self.screen = pygame.display.set_mode([nRows * cellSize, nCols * cellSize])
         # TODO: Work out initial state
         # TODO: Set the ruleset
         initialState = StartingState(nRows, nCols)
         self.rule = ruleSet
-        self.grid = Grid(nRows, nCols, initialState, cellSize)
+        self.colourRule = colourRule
+
+        # Work out the number of states there are
+        maxState = 0
+        for key in colourRule:
+             if key > maxState:
+                 maxState = key
+
+        self.grid = Grid(nRows, nCols, initialState, cellSize, maxState)
         self.inSetUpMode = True
         self.buttonPressedInWindow = False
         self.simulating = False
         self.minTimeBetweenFrames = 1 / maxFPS
         self.timeOfLastDraw = 0
-        self.colourRule = colourRule
+
 
     # Returns a Rect which matches the given grid x, y coordinates
-    def gridCoordsToDisplayRect(x, y):
-        left = x * self.grid.cellSize
-        top = y * self.grid.cellSize
-        width = self.grid.cellSize
-        height = self.grid.cellSize
+    def gridCoordsToDisplayRect(self, x, y):
+        left = x * self.grid.squareSize
+        top = y * self.grid.squareSize
+        width = self.grid.squareSize
+        height = self.grid.squareSize
         return pygame.Rect(left, top, width, height)
 
     def render(self):
-        # TODO: Write code to update the display
-        for x in self.grid.nCols:
-            for y in self.grid.nRows:
+        # Draw the coloured squares
+        for x in range(self.grid.nCols):
+            for y in range(self.grid.nRows):
                 # Grab the value in the grid, choose the right colour
                 # Then draw a box to match
-                colour = colourRule[self.grid.getState(x, y)]
-                rect = gridCoordsToDisplayRect(x, y)
-                pygame.draw.rect(screen, colour, rect)
+                colour = self.colourRule[self.grid.getState(x, y)]
+                rect = self.gridCoordsToDisplayRect(x, y)
+                pygame.draw.rect(self.screen, colour, rect)
+
+        # Whack in some grid lines
+        black = (0, 0, 0)
+
+        x = 0
+        while x <= self.grid.nCols * self.grid.squareSize:
+            startCoords = (x, 0)
+            endCoords = (x, self.grid.nRows * self.grid.squareSize)
+            pygame.draw.line(self.screen, black, startCoords, endCoords)
+            x += self.grid.squareSize
+
+        y = 0
+        while y <= self.grid.nRows * self.grid.squareSize:
+            startCoords = (0, y)
+            endCoords = (self.grid.nCols * self.grid.squareSize, y)
+            pygame.draw.line(self.screen, black, startCoords, endCoords)
+            y += self.grid.squareSize
+
 
         pygame.display.update()
 
     def run(self):
-        # Deal with any queued events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                exit()
+        stop = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.buttonPressed = event.button
-                self.buttonPressedInWindow = True
-                self.buttonPressCoords = pygame.mouse.get_pos()
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if self.buttonPressedInWindow:
-                    self.buttonPressedInWindow = False
-                    # TODO: Work out whether display is currently inverted
-                    gridX = buttonPressCoords[0] / self.grid.cellSize
-                    gridY = buttonPressCoords[1] / self.grid.cellSize
+        # Initial draw
+        self.render()
 
-                    # TODO: Worry about going off the edge?
+        while not stop:
+            # Deal with any queued events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    exit()
 
-                    if self.buttonPressed == 1:
-                        # LMB
-                        self.grid.incrementState(gridX, gridY)
-                    elif self.buttonPressed == 3:
-                        # RMB
-                        self.grid.decrementState(gridX, gridY)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.buttonPressed = event.button
+                    self.buttonPressedInWindow = True
+                    self.buttonPressCoords = pygame.mouse.get_pos()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if self.buttonPressedInWindow:
+                        self.buttonPressedInWindow = False
+                        # TODO: Work out whether display is currently inverted
+                        gridX = self.buttonPressCoords[0] / self.grid.squareSize
+                        gridY = self.buttonPressCoords[1] / self.grid.squareSize
 
-                    this.render()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                # If running then pause, otherwise start running
-                self.simulating = not self.simulating
+                        # TODO: Worry about going off the edge?
 
-        if self.simulating:
-            # Make sure we don't render too quickly
-            if msecsSinceEpoch() - self.timeOfLastDraw > self.minTimeBetweenFrames:
-                self.grid.applyRule(self.rule)
-                this.render()
+                        if self.buttonPressed == 1:
+                            # LMB
+                            self.grid.incrementState(gridX, gridY)
+                        elif self.buttonPressed == 3:
+                            # RMB
+                            self.grid.decrementState(gridX, gridY)
+
+                        self.render()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    # If running then pause, otherwise start running
+                    self.simulating = not self.simulating
+
+            if self.simulating:
+                # Make sure we don't render too quickly
+                if msecsSinceEpoch() - self.timeOfLastDraw > self.minTimeBetweenFrames:
+                    self.grid.applyRule(self.rule)
+                    self.render()
