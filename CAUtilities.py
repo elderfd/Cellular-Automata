@@ -16,13 +16,14 @@ def msecsSinceEpoch():
 # Utility classes
 class Grid:
     # Constructor
-    def __init__(self, nRows, nCols, initialState, maxState):
+    def __init__(self, nRows, nCols, initialState, maxState, allowWrap):
         self.array = [[0 for x in range(nRows)] for x in range(nCols)]
         self.brray = [[0 for x in range(nRows)] for x in range(nCols)]
         self.useA = True
         self.nCols = nCols
         self.nRows = nRows
         self.maxState = maxState
+        self.allowWrap = allowWrap
 
         for key in initialState:
             self.array[key[0]][key[1]] = initialState[key]
@@ -42,8 +43,24 @@ class Grid:
 
         for i in xScan:
             for j in yScan:
-                #Ignore self and cells outside the grid
-                if not (i==x and j==y or i<0 or i>=self.nCols or j<0 or j>=self.nRows):
+                # Ignore self
+                if not (i==x and j==y):
+                    # Decide what to do with cells off the grid
+                    if i < 0 or i >= self.nCols or j < 0 or j >= self.nRows:
+                        if self.allowWrap:
+                            # Convert the i and j values to wrap
+                            if i < 0:
+                                i = self.nCols + i
+                            elif i >= self.nCols:
+                                i = i - self.nCols
+
+                            if j < 0:
+                                j = self.nRows + j
+                            elif j >= self.nRows:
+                                j = j -self.nRows
+                        else:
+                            continue
+
                     if(not self.useA):
                         retList.append(self.brray[i][j])
                     else:
@@ -224,7 +241,7 @@ class Display:
              if key > maxState:
                  maxState = key
 
-        self.grid = Grid(nRows, nCols, initialState, maxState)
+        self.grid = Grid(nRows, nCols, initialState, maxState, True)
         self.inSetUpMode = True
         self.buttonPressedInWindow = False
         self.simulating = False
