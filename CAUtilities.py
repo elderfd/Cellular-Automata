@@ -16,13 +16,12 @@ def msecsSinceEpoch():
 # Utility classes
 class Grid:
     # Constructor
-    def __init__(self, nRows, nCols, initialState, squareSize, maxState):
+    def __init__(self, nRows, nCols, initialState, maxState):
         self.array = [[0 for x in range(nRows)] for x in range(nCols)]
         self.brray = [[0 for x in range(nRows)] for x in range(nCols)]
         self.useA = True
         self.nCols = nCols
         self.nRows = nRows
-        self.squareSize = squareSize
         self.maxState = maxState
 
         for key in initialState:
@@ -89,6 +88,7 @@ class Grid:
         self.useA = not self.useA
 
 
+    # TODO: Fix this function
     def saveToFile(self, t, filePrefix, colourMap):
         fileName=str(filePrefix)+str(t)+".bmp"
 
@@ -197,13 +197,21 @@ def bmp_write(d, byte, fileName):
     outfile.close()
 
 class Display:
-    def __init__(self, nRows, nCols, cellSize, maxFPS, colourRule, ruleSet):
+    def __init__(self, nRows, nCols, maxFPS, colourRule, ruleSet):
         # Set up pygame stuff first
         pygame.init()
+
+        # Some defaults
+        # TODO: This should probably scale inversely with number of squares
+        defaultSquareXSize = 10
+        defaultSquareYSize = 10
+
+        self.squareXSize = defaultSquareXSize
+        self.squareYSize = defaultSquareYSize
+
+        self.screenOptions = pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE
         pygame.display.set_caption("Cellular Automata")
-        self.screen = pygame.display.set_mode([nRows * cellSize, nCols * cellSize])
-        # TODO: Work out initial state
-        # TODO: Set the ruleset
+        self.screen = pygame.display.set_mode([nRows * self.squareYSize, nCols * self.squareXSize], self.screenOptions)
         initialState = StartingState(nRows, nCols)
         self.rule = ruleSet
         self.colourRule = colourRule
@@ -214,7 +222,7 @@ class Display:
              if key > maxState:
                  maxState = key
 
-        self.grid = Grid(nRows, nCols, initialState, cellSize, maxState)
+        self.grid = Grid(nRows, nCols, initialState, maxState)
         self.inSetUpMode = True
         self.buttonPressedInWindow = False
         self.simulating = False
@@ -224,10 +232,10 @@ class Display:
 
     # Returns a Rect which matches the given grid x, y coordinates
     def gridCoordsToDisplayRect(self, x, y):
-        left = x * self.grid.squareSize
-        top = y * self.grid.squareSize
-        width = self.grid.squareSize
-        height = self.grid.squareSize
+        left = x * self.squareXSize
+        top = y * self.squareYSize
+        width = self.squareXSize
+        height = self.squareYSize
         return pygame.Rect(left, top, width, height)
 
     def render(self):
@@ -244,18 +252,18 @@ class Display:
         black = (0, 0, 0)
 
         x = 0
-        while x <= self.grid.nCols * self.grid.squareSize:
+        while x <= self.grid.nCols * self.squareXSize:
             startCoords = (x, 0)
-            endCoords = (x, self.grid.nRows * self.grid.squareSize)
+            endCoords = (x, self.grid.nRows * self.squareYSize)
             pygame.draw.line(self.screen, black, startCoords, endCoords)
-            x += self.grid.squareSize
+            x += self.squareXSize
 
         y = 0
-        while y <= self.grid.nRows * self.grid.squareSize:
+        while y <= self.grid.nRows * self.squareYSize:
             startCoords = (0, y)
-            endCoords = (self.grid.nCols * self.grid.squareSize, y)
+            endCoords = (self.grid.nCols * self.squareXSize, y)
             pygame.draw.line(self.screen, black, startCoords, endCoords)
-            y += self.grid.squareSize
+            y += self.squareYSize
 
 
         pygame.display.update()
@@ -271,19 +279,23 @@ class Display:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     exit()
+                elif event.type == pygame.VIDEORESIZE:
+                    # Rescale to match new size
+                    newRes = event.dict['size']
+                    self.squareXSize = newRes[0] / self.grid.nCols
+                    self.squareYSize = newRes[1] / self.grid.nRows
+                    screen = pygame.display.set_mode(newRes, self.screenOptions)
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.render()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.buttonPressed = event.button
                     self.buttonPressedInWindow = True
                     self.buttonPressCoords = pygame.mouse.get_pos()
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if self.buttonPressedInWindow:
                         self.buttonPressedInWindow = False
-                        # TODO: Work out whether display is currently inverted
-                        gridX = self.buttonPressCoords[0] / self.grid.squareSize
-                        gridY = self.buttonPressCoords[1] / self.grid.squareSize
-
-                        # TODO: Worry about going off the edge?
+                        gridX = self.buttonPressCoords[0] / self.squareXSize
+                        gridY = self.buttonPressCoords[1] / self.squareYSize
 
                         if self.buttonPressed == 1:
                             # LMB

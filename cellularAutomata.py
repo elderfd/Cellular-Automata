@@ -24,9 +24,6 @@ filePrefix = "output"
 # Set the number of frames per second for the produced video
 videoFPS = 30
 
-# Sets how many pixels a grid square is across in the produced images
-gridSquareSize = 10
-
 # Gives colouring rule for images
 # This matches a cell state value to an RGB colour
 colourRule = {
@@ -153,7 +150,6 @@ if __name__ == '__main__':
         disp = CAUtilities.Display(
             numberOfRowsInGrid,
             numberOfColumnsInGrid,
-            gridSquareSize,
             videoFPS,
             colourRule,
             rule
