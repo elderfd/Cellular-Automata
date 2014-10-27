@@ -15,18 +15,19 @@ colourRule = {
     1: (0, 0, 0),
     0: (255, 255, 255)
 }
+# ------------------------------------------------------
 
-#Rules to use in the model---------------------------------
+# Rules to use in the model
 def ruleSet(currentState, listOfNeighbourStates):
-    total=sum(listOfNeighbourStates)
+    total = sum(listOfNeighbourStates)
 
-    if(currentState==0):
-        if(total==3):
+    if(currentState == 0):
+        if(total == 3):
             return 1
         else:
             return 0
     else:
-        if(total<2 or total>3):
+        if(total < 2 or total > 3):
             return 0
         else:
             return 1

@@ -32,8 +32,8 @@ class Display:
         # Work out the number of states there are
         maxState = 0
         for key in colourRule:
-             if key > maxState:
-                 maxState = key
+            if key > maxState:
+                maxState = key
 
         self.grid = backend.Grid(nRows, nCols, maxState, True)
         self.inSetUpMode = True
@@ -41,7 +41,6 @@ class Display:
         self.simulating = False
         self.minTimeBetweenFrames = 1 / maxFPS
         self.timeOfLastDraw = 0
-
 
     # Returns a Rect which matches the given grid x, y coordinates
     def gridCoordsToDisplayRect(self, x, y):
