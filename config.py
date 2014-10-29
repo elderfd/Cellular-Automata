@@ -18,7 +18,7 @@ colourRule = {
 # ------------------------------------------------------
 
 # Rules to use in the model
-def ruleSet(currentState, listOfNeighbourStates):
+def gameOfLife(currentState, listOfNeighbourStates):
     total = sum(listOfNeighbourStates)
 
     if(currentState == 0):
@@ -31,3 +31,5 @@ def ruleSet(currentState, listOfNeighbourStates):
             return 0
         else:
             return 1
+
+ruleSet = gameOfLife
