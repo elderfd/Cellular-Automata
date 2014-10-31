@@ -22,3 +22,5 @@ Border colour shows green when simulation in progress and red when paused.
 Better interface.
 
 Ability to alter neighbourhood: von Neumann/ Moore and range.
+
+Click n drag to change multiple cells at once
