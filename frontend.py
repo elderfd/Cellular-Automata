@@ -70,36 +70,36 @@ class Display:
 
         x = 1
         while x < self.grid.n_cols:
-            startCoords = (self.grid_x_to_display_x(x) , self.grid_y_to_display_y(0))
-            endCoords = (self.grid_x_to_display_x(x), self.grid_y_to_display_y(self.grid.n_rows))
-            pygame.draw.line(self.screen, black, startCoords, endCoords)
+            start_coords = (self.grid_x_to_display_x(x) , self.grid_y_to_display_y(0))
+            end_coords = (self.grid_x_to_display_x(x), self.grid_y_to_display_y(self.grid.n_rows))
+            pygame.draw.line(self.screen, black, start_coords, end_coords)
             x += 1
 
         y = 1
         while y < self.grid.n_rows:
-            startCoords = (self.grid_x_to_display_x(0), self.grid_y_to_display_y(y))
-            endCoords = ( self.grid_x_to_display_x(self.grid.n_cols), self.grid_y_to_display_y(y))
-            pygame.draw.line(self.screen, black, startCoords, endCoords)
+            start_coords = (self.grid_x_to_display_x(0), self.grid_y_to_display_y(y))
+            end_coords = ( self.grid_x_to_display_x(self.grid.n_cols), self.grid_y_to_display_y(y))
+            pygame.draw.line(self.screen, black, start_coords, end_coords)
             y += 1
 
         # Special coloured grid lines around edge to show play/ pause
-        topLeft = (0, 0)
-        topRight = (self.square_x_size * self.grid.n_cols, 0)
-        bottomRight = (self.square_x_size * self.grid.n_cols, self.square_y_size * self.grid.n_rows)
-        bottomLeft=(0, self.square_y_size * self.grid.n_rows)
+        top_left = (0, 0)
+        top_right = (self.square_x_size * self.grid.n_cols, 0)
+        bottom_right = (self.square_x_size * self.grid.n_cols, self.square_y_size * self.grid.n_rows)
+        bottom_left=(0, self.square_y_size * self.grid.n_rows)
 
         if self.simulating:
-            borderColour = (0, 255, 0)
+            border_colour = (0, 255, 0)
         else:
-            borderColour = (255, 0, 0)
+            border_colour = (255, 0, 0)
 
         # Maybe should use draw.lines in future but this won't
         # be a rate-limiting step and some issues with joins
         # apparently
-        pygame.draw.line(self.screen, borderColour, topLeft, topRight)
-        pygame.draw.line(self.screen, borderColour, topRight, bottomRight)
-        pygame.draw.line(self.screen, borderColour, bottomRight, bottomLeft)
-        pygame.draw.line(self.screen, borderColour, bottomLeft, topLeft)
+        pygame.draw.line(self.screen, border_colour, top_left, top_right)
+        pygame.draw.line(self.screen, border_colour, top_right, bottom_right)
+        pygame.draw.line(self.screen, border_colour, bottom_right, bottom_left)
+        pygame.draw.line(self.screen, border_colour, bottom_left, top_left)
 
         pygame.display.update()
 
