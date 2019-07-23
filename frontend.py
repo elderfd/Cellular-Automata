@@ -3,91 +3,90 @@ import pygame
 import datetime
 
 # Gives the current number of milliseconds since epoch
-def msecsSinceEpoch():
+def msecs_since_epoch():
     epoch = datetime.datetime(1970, 1, 1)
     diff = datetime.datetime.now() - epoch
     return (diff.microseconds * 1000)
 
 # Provides the display for the simulation and allows interaction
 class Display:
-    def __init__(self, nRows, nCols, maxFPS, colourRule, ruleSet):
+    def __init__(self, n_rows, n_cols, max_fps, colour_rule, rule_set):
         # Set up pygame stuff first
         pygame.init()
 
         # Some defaults
-        defaultWindowWidth = 500
-        defaultWindowHeight = 500
+        default_window_width = 500
+        default_window_height = 500
 
-        self.borderThickness = 2
+        self.border_thickness = 2
 
-        self.squareXSize = (defaultWindowWidth - 2 * self.borderThickness) / nCols
-        self.squareYSize = (defaultWindowHeight - 2 * self.borderThickness) / nRows
+        self.square_x_size = (default_window_width - 2 * self.border_thickness) / n_cols
+        self.square_y_size = (default_window_height - 2 * self.border_thickness) / n_rows
 
-        self.screenOptions = pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE
+        self.screen_options = pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE
         pygame.display.set_caption("Cellular Automata")
-        self.screen = pygame.display.set_mode([defaultWindowWidth, defaultWindowHeight], self.screenOptions)
-        self.rule = ruleSet
-        self.colourRule = colourRule
+        self.screen = pygame.display.set_mode([default_window_width, default_window_height], self.screen_options)
+        self.rule = rule_set
+        self.colour_rule = colour_rule
 
         # Work out the number of states there are
-        maxState = 0
-        for key in colourRule:
-            if key > maxState:
-                maxState = key
+        max_state = 0
+        for key in colour_rule:
+            if key > max_state:
+                max_state = key
 
-        self.grid = backend.Grid(nRows, nCols, maxState, True)
-        self.inSetUpMode = True
-        self.buttonPressedInWindow = False
+        self.grid = backend.Grid(n_rows, n_cols, max_state, True)
+        self.button_pressed_in_window = False
         self.simulating = False
-        self.minTimeBetweenFrames = 1 / maxFPS
-        self.timeOfLastDraw = 0
+        self.min_time_between_frames = 1 / max_fps
+        self.time_of_last_draw = 0
 
     # Returns a Rect which matches the given grid x, y coordinates
-    def gridCoordsToDisplayRect(self, x, y):
-        left = self.gridXToDisplayX(x)
-        top = self.gridYToDisplayY(y)
-        width = self.squareXSize + 2 * self.borderThickness
-        height = self.squareYSize + 2 * self.borderThickness
+    def grid_coords_to_display_rect(self, x, y):
+        left = self.grid_x_to_display_x(x)
+        top = self.grid_y_to_display_y(y)
+        width = self.square_x_size + 2 * self.border_thickness
+        height = self.square_y_size + 2 * self.border_thickness
         return pygame.Rect(left, top, width, height)
 
-    def gridXToDisplayX(self, x):
-        return x * self.squareXSize + self.borderThickness
+    def grid_x_to_display_x(self, x):
+        return x * self.square_x_size + self.border_thickness
 
-    def gridYToDisplayY(self, y):
-        return y * self.squareYSize + self.borderThickness
+    def grid_y_to_display_y(self, y):
+        return y * self.square_y_size + self.border_thickness
 
     def render(self):
         # Draw the coloured squares
-        for x in range(self.grid.nCols):
-            for y in range(self.grid.nRows):
+        for x in range(self.grid.n_cols):
+            for y in range(self.grid.n_rows):
                 # Grab the value in the grid, choose the right colour
                 # Then draw a box to match
-                colour = self.colourRule[self.grid.getState(x, y)]
-                rect = self.gridCoordsToDisplayRect(x, y)
+                colour = self.colour_rule[self.grid.get_state(x, y)]
+                rect = self.grid_coords_to_display_rect(x, y)
                 pygame.draw.rect(self.screen, colour, rect)
 
         # Whack in some grid lines
         black = (0, 0, 0)
 
         x = 1
-        while x < self.grid.nCols:
-            startCoords = (self.gridXToDisplayX(x) , self.gridYToDisplayY(0))
-            endCoords = (self.gridXToDisplayX(x), self.gridYToDisplayY(self.grid.nRows))
+        while x < self.grid.n_cols:
+            startCoords = (self.grid_x_to_display_x(x) , self.grid_y_to_display_y(0))
+            endCoords = (self.grid_x_to_display_x(x), self.grid_y_to_display_y(self.grid.n_rows))
             pygame.draw.line(self.screen, black, startCoords, endCoords)
             x += 1
 
         y = 1
-        while y < self.grid.nRows:
-            startCoords = (self.gridXToDisplayX(0), self.gridYToDisplayY(y))
-            endCoords = ( self.gridXToDisplayX(self.grid.nCols), self.gridYToDisplayY(y))
+        while y < self.grid.n_rows:
+            startCoords = (self.grid_x_to_display_x(0), self.grid_y_to_display_y(y))
+            endCoords = ( self.grid_x_to_display_x(self.grid.n_cols), self.grid_y_to_display_y(y))
             pygame.draw.line(self.screen, black, startCoords, endCoords)
             y += 1
 
         # Special coloured grid lines around edge to show play/ pause
         topLeft = (0, 0)
-        topRight = (self.squareXSize * self.grid.nCols, 0)
-        bottomRight = (self.squareXSize * self.grid.nCols, self.squareYSize * self.grid.nRows)
-        bottomLeft=(0, self.squareYSize * self.grid.nRows)
+        topRight = (self.square_x_size * self.grid.n_cols, 0)
+        bottomRight = (self.square_x_size * self.grid.n_cols, self.square_y_size * self.grid.n_rows)
+        bottomLeft=(0, self.square_y_size * self.grid.n_rows)
 
         if self.simulating:
             borderColour = (0, 255, 0)
@@ -118,27 +117,27 @@ class Display:
                 elif event.type == pygame.VIDEORESIZE:
                     # Rescale to match new size
                     newRes = event.dict['size']
-                    self.squareXSize = (newRes[0] - self.borderThickness) / self.grid.nCols
-                    self.squareYSize = (newRes[1] - self.borderThickness) / self.grid.nRows
-                    screen = pygame.display.set_mode(newRes, self.screenOptions)
+                    self.square_x_size = (newRes[0] - self.border_thickness) / self.grid.n_cols
+                    self.square_y_size = (newRes[1] - self.border_thickness) / self.grid.n_rows
+                    self.screen = pygame.display.set_mode(newRes, self.screen_options)
 
                     self.render()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.buttonPressed = event.button
-                    self.buttonPressedInWindow = True
-                    self.buttonPressCoords = pygame.mouse.get_pos()
+                    self.button_pressed = event.button
+                    self.button_pressed_in_window = True
+                    self.button_press_coords = pygame.mouse.get_pos()
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    if self.buttonPressedInWindow:
-                        self.buttonPressedInWindow = False
-                        gridX = self.buttonPressCoords[0] / self.squareXSize
-                        gridY = self.buttonPressCoords[1] / self.squareYSize
+                    if self.button_pressed_in_window:
+                        self.button_pressed_in_window = False
+                        gridX = self.button_press_coords[0] / self.square_x_size
+                        gridY = self.button_press_coords[1] / self.square_y_size
 
-                        if self.buttonPressed == 1:
+                        if self.button_pressed == 1:
                             # LMB
-                            self.grid.incrementState(gridX, gridY)
-                        elif self.buttonPressed == 3:
+                            self.grid.increment_state(gridX, gridY)
+                        elif self.button_pressed == 3:
                             # RMB
-                            self.grid.decrementState(gridX, gridY)
+                            self.grid.decrement_state(gridX, gridY)
 
                         self.render()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
@@ -148,6 +147,6 @@ class Display:
 
             if self.simulating:
                 # Make sure we don't render too quickly
-                if msecsSinceEpoch() - self.timeOfLastDraw > self.minTimeBetweenFrames:
-                    self.grid.applyRule(self.rule)
+                if msecs_since_epoch() - self.time_of_last_draw > self.min_time_between_frames:
+                    self.grid.apply_rule(self.rule)
                     self.render()

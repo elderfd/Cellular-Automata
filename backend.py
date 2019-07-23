@@ -1,86 +1,86 @@
 # The field that the simulation occurs on
 class Grid:
     # Constructor
-    def __init__(self, nRows, nCols, maxState, allowWrap):
-        self.array = [[0 for x in range(nRows)] for x in range(nCols)]
-        self.brray = [[0 for x in range(nRows)] for x in range(nCols)]
-        self.useA = True
-        self.nCols = nCols
-        self.nRows = nRows
-        self.maxState = maxState
-        self.allowWrap = allowWrap
+    def __init__(self, n_rows, n_cols, max_state, allow_wrap):
+        self.array = [[0 for x in range(n_rows)] for x in range(n_cols)]
+        self.brray = [[0 for x in range(n_rows)] for x in range(n_cols)]
+        self.use_array = True
+        self.n_cols = n_cols
+        self.n_rows = n_rows
+        self.max_state = max_state
+        self.allow_wrap = allow_wrap
 
-    def getNeighbourStates(self, x, y, sizeOfNeighbourHood):
-        retList = []
-        xScan = []
-        yScan = []
+    def get_neighbour_states(self, x, y, size_of_neighbourHood):
+        ret_list = []
+        x_scan = []
+        y_scan = []
 
-        for offSet in range(sizeOfNeighbourHood + 1):
-            xScan.append(x - offSet)
-            yScan.append(y - offSet)
+        for off_set in range(size_of_neighbourHood + 1):
+            x_scan.append(x - off_set)
+            y_scan.append(y - off_set)
 
-            if offSet != 0:
-                xScan.append(x + offSet)
-                yScan.append(y + offSet)
+            if off_set != 0:
+                x_scan.append(x + off_set)
+                y_scan.append(y + off_set)
 
-        for i in xScan:
-            for j in yScan:
+        for i in x_scan:
+            for j in y_scan:
                 # Ignore self
-                if not (i==x and j==y):
+                if not (i == x and j == y):
                     # Decide what to do with cells off the grid
-                    if i < 0 or i >= self.nCols or j < 0 or j >= self.nRows:
-                        if self.allowWrap:
+                    if i < 0 or i >= self.n_cols or j < 0 or j >= self.n_rows:
+                        if self.allow_wrap:
                             # Convert the i and j values to wrap
                             if i < 0:
-                                i = self.nCols + i
-                            elif i >= self.nCols:
-                                i = i - self.nCols
+                                i = self.n_cols + i
+                            elif i >= self.n_cols:
+                                i = i - self.n_cols
 
                             if j < 0:
-                                j = self.nRows + j
-                            elif j >= self.nRows:
-                                j = j -self.nRows
+                                j = self.n_rows + j
+                            elif j >= self.n_rows:
+                                j = j -self.n_rows
                         else:
                             continue
 
-                    if(not self.useA):
-                        retList.append(self.brray[i][j])
+                    if not self.use_array:
+                        ret_list.append(self.brray[i][j])
                     else:
-                        retList.append(self.array[i][j])
+                        ret_list.append(self.array[i][j])
 
-        return retList
+        return ret_list
 
-    def getState(self, x, y):
+    def get_state(self, x, y):
         x = int(x)
         y = int(y)
-        if self.useA:
+        if self.use_array:
             return self.array[x][y]
         else:
             return self.brray[x][y]
 
-    def setState(self, x, y, value):
+    def set_state(self, x, y, value):
         x = int(x)
         y = int(y)
-        if self.useA:
+        if self.use_array:
             self.array[x][y] = value
         else:
             self.brray[x][y] = value
 
-    def incrementState(self, x, y):
-        if self.getState(x, y) != self.maxState:
-            self.setState(x, y, self.getState(x, y) + 1)
+    def increment_state(self, x, y):
+        if self.get_state(x, y) != self.max_state:
+            self.set_state(x, y, self.get_state(x, y) + 1)
 
-    def decrementState(self, x, y):
-        if self.getState(x, y) != 0:
-            self.setState(x, y, self.getState(x, y) - 1)
+    def decrement_state(self, x, y):
+        if self.get_state(x, y) != 0:
+            self.set_state(x, y, self.get_state(x, y) - 1)
 
-    def applyRule(self, rule):
-        for i in range(self.nCols):
-            for j in range(self.nRows):
+    def apply_rule(self, rule):
+        for i in range(self.n_cols):
+            for j in range(self.n_rows):
                 # Assume for now the neighbourhood size is 1
-                if(not self.useA):
-                    self.array[i][j] = rule(self.brray[i][j],  self.getNeighbourStates(i, j, 1))
+                if not self.use_array:
+                    self.array[i][j] = rule(self.brray[i][j],  self.get_neighbour_states(i, j, 1))
                 else:
-                    self.brray[i][j] = rule(self.array[i][j], self.getNeighbourStates(i, j, 1))
+                    self.brray[i][j] = rule(self.array[i][j], self.get_neighbour_states(i, j, 1))
 
-        self.useA = not self.useA
+        self.use_array = not self.use_array

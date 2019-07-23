@@ -9,11 +9,11 @@ import config
 if __name__ == '__main__':
         # Set up the display
         disp = frontend.Display(
-            config.numberOfRowsInGrid,
-            config.numberOfColumnsInGrid,
-            config.videoFPS,
-            config.colourRule,
-            config.ruleSet
+            config.number_of_rows_in_grid,
+            config.number_of_columns_in_grid,
+            config.fps,
+            config.colour_rule,
+            config.rule_set
         )
 
         # Run the display
